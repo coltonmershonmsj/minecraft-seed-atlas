@@ -1,1 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Minecraft Assistant</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .chat { max-width: 900px; margin: 20px auto; padding: 12px; }
+    .row { display:flex; gap:10px; margin: 10px 0; }
+    .me, .ai { padding: 10px 12px; border-radius: 12px; max-width: 80%; white-space: pre-wrap; }
+    .me { margin-left:auto; border: 1px solid #ccc; }
+    .ai { margin-right:auto; border: 1px solid #ccc; }
+    .bar { display:flex; gap:8px; margin-top: 12px; }
+    input { flex:1; padding:10px; font-size:16px; }
+    button { padding:10px 14px; font-size:16px; }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    select { padding:8px; }
+  </style>
+</head>
+<body>
+  <div class="chat">
+    <div class="top">
+      <h2>Minecraft Assistant</h2>
+      <div>
+        <label>Platform:</label>
+        <select id="platform">
+          <option value="java">Java</option>
+          <option value="bedrock">Bedrock</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="msgs"></div>
+
+    <div class="bar">
+      <input id="q" placeholder="Ask anything about Minecraft..." />
+      <button id="send">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const msgs = document.getElementById("msgs");
+    const input = document.getElementById("q");
+    const platform = document.getElementById("platform");
+
+    function addBubble(text, who) {
+      const row = document.createElement("div");
+      row.className = "row";
+      const b = document.createElement("div");
+      b.className = who;
+      b.textContent = text;
+      row.appendChild(b);
+      msgs.appendChild(row);
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    async function ask() {
+      const question = input.value.trim();
+      if (!question) return;
+      input.value = "";
+      addBubble(question, "me");
+      addBubble("Thinking...", "ai");
+
+      const thinkingBubble = msgs.lastChild.firstChild;
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question,
+            platform: platform.value
+          })
+        });
+
+        const data = await res.json();
+        thinkingBubble.textContent = data.answer || "(No answer returned)";
+      } catch (e) {
+        thinkingBubble.textContent = "AI backend not connected yet.";
+      }
+    }
+
+    document.getElementById("send").addEventListener("click", ask);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") ask(); });
+
+    addBubble("Hi! Ask me anything about Minecraft.", "ai");
+  </script>
+</body>
+</html>
 
