@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Minecraft Seed Atlas</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Minecraft Seed Atlas</h1>
+      <div class="sub">Demo build: biomes + structures UI (engine upgrade next)</div>
+    </div>
+    <div class="pill">v1</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="row">
+        <label class="field">
+          <span>Seed</span>
+          <input id="seed" value="12345" />
+        </label>
+
+        <label class="field">
+          <span>Dimension</span>
+          <select id="dim">
+            <option value="overworld" selected>Overworld</option>
+            <option value="nether">Nether</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Map Size</span>
+          <select id="size">
+            <option value="256">256×256</option>
+            <option value="512" selected>512×512</option>
+            <option value="1024">1024×1024</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Blocks / pixel</span>
+          <select id="scale">
+            <option value="4">4</option>
+            <option value="8" selected>8</option>
+            <option value="16">16</option>
+          </select>
+        </label>
+
+        <button id="genMap" class="btn">Generate Map</button>
+      </div>
+
+      <hr/>
+
+      <div class="row">
+        <label class="field small">
+          <span>Your X</span>
+          <input id="x" type="number" value="0" />
+        </label>
+        <label class="field small">
+          <span>Your Z</span>
+          <input id="z" type="number" value="0" />
+        </label>
+        <label class="field">
+          <span>Search radius (blocks)</span>
+          <input id="radius" type="number" value="5000" />
+        </label>
+        <button id="findNearest" class="btn secondary">Find Nearest</button>
+      </div>
+
+      <div class="hint">
+        Click-drag the map to pan. Mousewheel to zoom.
+      </div>
+
+      <h2>Structure Filters</h2>
+      <div id="filters" class="filters"></div>
+
+      <h2>Nearest Results</h2>
+      <div id="results" class="results"></div>
+    </section>
+
+    <section class="mapwrap">
+      <div class="mapbar">
+        <div id="status" class="status">Ready.</div>
+        <div class="coords" id="hoverCoords">—</div>
+      </div>
+      <canvas id="map" width="512" height="512"></canvas>
+      <div class="legend" id="legend"></div>
+    </section>
+  </main>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
