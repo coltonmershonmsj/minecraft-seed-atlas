@@ -1,10 +1,33 @@
-export default async (req) => {
+exports.handler = async (event) => {
   try {
-    if (req.method !== "POST") {
-      return new Response("Use POST", { status: 405 });
+    if (event.httpMethod !== "POST") {
+      return {
+        statusCode: 405,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "Use POST" }),
+      };
     }
 
-    const { question, platform } = await req.json();
+    // Make sure the API key exists
+    if (!process.env.OPENAI_API_KEY) {
+      return {
+        statusCode: 500,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "Missing OPENAI_API_KEY in Netlify environment variables" }),
+      };
+    }
+
+    const body = JSON.parse(event.body || "{}");
+    const question = (body.question || "").trim();
+    const platform = body.platform || "bedrock";
+
+    if (!question) {
+      return {
+        statusCode: 400,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "Missing question" }),
+      };
+    }
 
     const resp = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -18,8 +41,8 @@ export default async (req) => {
           {
             role: "system",
             content:
-              "You are a Bedrock-first Minecraft guide for a group world. " +
-              "Give practical step-by-step answers. If you need missing info, ask 1 short question.",
+              "You are a Bedrock-first Minecraft guide for a group world of 7. " +
+              "Give practical step-by-step answers. If info is missing, ask 1 short question.",
           },
           {
             role: "user",
@@ -29,42 +52,43 @@ export default async (req) => {
       }),
     });
 
+    const text = await resp.text();
+
+    // If OpenAI returns an error, show it clearly
     if (!resp.ok) {
-      const err = await resp.text();
-      return new Response(JSON.stringify({ error: err }), {
-        status: 500,
+      return {
+        statusCode: 500,
         headers: { "Content-Type": "application/json" },
-      });
+        body: JSON.stringify({ error: "OpenAI error", status: resp.status, details: text }),
+      };
     }
 
-    const data = await resp.json();
+    const data = JSON.parse(text);
 
-// Try multiple known places where the text can appear
-const answer =
-  data.output_text ??
-  data.output?.[0]?.content?.[0]?.text ??
-  data.output?.[0]?.content?.[0]?.value ??
-  data.response?.output_text ??
-  null;
+    // Reliable extraction
+    const answer =
+      data.output_text ??
+      data.output?.[0]?.content?.[0]?.text ??
+      null;
 
-if (!answer) {
-  // If we still can't find it, return the whole response for debugging
-  return new Response(JSON.stringify({ error: "No text found in response", raw: data }), {
-    status: 500,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+    if (!answer) {
+      return {
+        statusCode: 500,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "No answer text found", raw: data }),
+      };
+    }
 
-return new Response(JSON.stringify({ answer }), {
-  headers: { "Content-Type": "application/json" },
-});
-    return new Response(JSON.stringify({ answer }), {
+    return {
+      statusCode: 200,
       headers: { "Content-Type": "application/json" },
-    });
+      body: JSON.stringify({ answer }),
+    };
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500,
+    return {
+      statusCode: 500,
       headers: { "Content-Type": "application/json" },
-    });
+      body: JSON.stringify({ error: "Server error", details: String(e) }),
+    };
   }
 };
