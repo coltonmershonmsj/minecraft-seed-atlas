@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>POST Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 16px; }
+    pre { white-space: pre-wrap; background: #f3f3f3; padding: 12px; border-radius: 8px; }
+    button { padding: 10px 14px; font-size: 16px; }
+    input { width: 100%; padding: 10px; font-size: 16px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h2>Netlify Function POST Test</h2>
+
+  <div>
+    <label>Question</label>
+    <input id="q" value="Say only the word PINEAPPLE." />
+    <button id="go">Send POST</button>
+  </div>
+
+  <h3>Result</h3>
+  <pre id="out">Click "Send POST"…</pre>
+
+  <script>
+    const out = document.getElementById("out");
+    document.getElementById("go").addEventListener("click", async () => {
+      out.textContent = "Sending…";
+
+      try {
+        const res = await fetch("/.netlify/functions/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: document.getElementById("q").value, platform: "bedrock" })
+        });
+
+        const text = await res.text();
+        out.textContent = `HTTP ${res.status}\n\n${text}`;
+      } catch (e) {
+        out.textContent = "Fetch error: " + e;
+      }
+    });
+  </script>
+</body>
+</html>
