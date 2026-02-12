@@ -1,1 +1,4 @@
+Java uses mods (Forge/Fabric). Bedrock uses add-ons or Marketplace packs.
+Villagers restock trades up to twice per day if they can reach their workstation.
+For building, use 2–4 blocks in a palette, add depth with stairs/slabs, then detail.
 
