@@ -38,7 +38,26 @@ export default async (req) => {
     }
 
     const data = await resp.json();
-    const answer = data.output_text || "No answer returned.";
+
+// Try multiple known places where the text can appear
+const answer =
+  data.output_text ??
+  data.output?.[0]?.content?.[0]?.text ??
+  data.output?.[0]?.content?.[0]?.value ??
+  data.response?.output_text ??
+  null;
+
+if (!answer) {
+  // If we still can't find it, return the whole response for debugging
+  return new Response(JSON.stringify({ error: "No text found in response", raw: data }), {
+    status: 500,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+return new Response(JSON.stringify({ answer }), {
+  headers: { "Content-Type": "application/json" },
+});
     return new Response(JSON.stringify({ answer }), {
       headers: { "Content-Type": "application/json" },
     });
