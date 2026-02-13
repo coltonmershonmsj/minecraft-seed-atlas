@@ -28,6 +28,14 @@ exports.handler = async (event) => {
         body: JSON.stringify({ error: "Missing question" }),
       };
     }
+const k = process.env.OPENAI_API_KEY || "";
+if (!k.startsWith("sk-")) {
+  return {
+    statusCode: 500,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ error: "OPENAI_API_KEY does not start with sk-", startsWith: k.slice(0, 6), length: k.length }),
+  };
+}
 
     const resp = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
